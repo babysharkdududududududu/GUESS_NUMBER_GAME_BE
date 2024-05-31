@@ -1,0 +1,98 @@
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: ['http://localhost:3000', 'http://192.168.1.6:8081'],
+        credentials: true,
+        methods: ['GET', 'POST'],
+    },
+});
+
+let rooms = [];
+
+// Generate a random room number
+const createNewRoom = (secretNumber) => {
+    const roomNumber = Math.floor(Math.random() * 1000000).toString();
+    const newRoom = { roomNumber, secretNumber };
+    rooms.push(newRoom);
+    return newRoom;
+};
+
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    // socket.on('createRoom', ({ secretNumber }, callback) => {
+    //     const newRoom = createNewRoom(secretNumber);
+    //     console.log(`Room created: roomNumber=${newRoom.roomNumber}, secretNumber=${secretNumber}`);
+    //     socket.join(newRoom.roomNumber);
+    //     callback({ room: newRoom.roomNumber }); // Trả về mã phòng cho client
+    // });
+
+    // socket.on('joinRoom', ({ roomNumber, secretNumber }, callback) => {
+    //     console.log(`joinRoom request: roomNumber=${roomNumber}, secretNumber=${secretNumber}`);
+    //     const room = rooms.find((r) => r.roomNumber === roomNumber);
+    //     if (!room) {
+    //         console.log('Room not found');
+    //         callback({ error: "Phòng không tồn tại. Vui lòng kiểm tra lại số phòng!" });
+    //     } else {
+    //         socket.join(roomNumber);
+    //         console.log(`User joined room: ${roomNumber}`);
+    //         io.to(roomNumber).emit('userJoined', { message: 'Đã có người vào phòng' }); // Gửi sự kiện khi có người tham gia vào phòng
+    //         callback({ room: room.roomNumber });
+    //     }
+    // });
+    socket.on('createRoom', ({ secretNumber }, callback) => {
+        const newRoom = createNewRoom(secretNumber);
+        console.log(`Room created: roomNumber=${newRoom.roomNumber}, secretNumber=${secretNumber}, ownerId=${socket.id}`);
+        socket.join(newRoom.roomNumber);
+        callback({ room: newRoom.roomNumber, isOwner: true, ownerId: socket.id }); // Trả về mã phòng, đánh dấu người tạo là chủ phòng, và gửi ID của chủ phòng
+    });
+
+
+    socket.on('joinRoom', ({ roomNumber, secretNumber }, callback) => {
+        console.log(`joinRoom request: roomNumber=${roomNumber}, secretNumber=${secretNumber}`);
+        const room = rooms.find((r) => r.roomNumber === roomNumber);
+        if (!room) {
+            console.log('Room not found');
+            callback({ error: "Phòng không tồn tại. Vui lòng kiểm tra lại số phòng!" });
+        } else {
+            socket.join(roomNumber);
+            console.log(`User joined room: ${roomNumber}`);
+            io.to(roomNumber).emit('userJoined', { message: 'Đã có người vào phòng' }); // Gửi sự kiện khi có người tham gia vào phòng
+
+            const ownerRoom = rooms.find((r) => r.roomNumber === roomNumber && r.isOwner === true);
+            if (ownerRoom) {
+                const ownerSocket = io.sockets.sockets.get(ownerRoom.ownerId);
+                if (ownerSocket) {
+                    ownerSocket.emit('notification', { message: 'Đã có người tham gia vào phòng' }); // Gửi thông báo cho chủ phòng
+                }
+            }
+
+            callback({ room: room.roomNumber, isOwner: false });
+        }
+    });
+
+
+
+    socket.on('leaveRoom', (room) => {
+        socket.leave(room);
+        console.log(`User left room: ${room}`);
+    });
+
+    socket.on('playerMove', (data) => {
+        const { room, move } = data;
+        socket.to(room).emit('opponentMove', move);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
+server.listen(3000, () => {
+    console.log('Listening on *:3000');
+});

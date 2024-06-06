@@ -4,7 +4,6 @@ const userRouter = require('./router/userRouter');
 const roomRouter = require('./router/roomRouter');
 const socket = require('socket.io');
 const http = require('http');
-const server = http.createServer(app);
 const cors = require('cors');
 
 require('dotenv').config();
@@ -24,10 +23,17 @@ app.use(function (req, res, next) {
     next();
 });
 
+const hostName = "192.168.1.189";
+const port = process.env.PORT || 8000;
+const uri = process.env.ATLAS_URI;
+
+const server = app.listen(port, hostName, () => {
+    console.log(`Example app listening on: http://${hostName}:${port}`);
+});
 // CORS configuration for socket.io
 const io = socket(server, {
     cors: {
-        origin: ['http://localhost:3000', 'http://192.168.1.6:8000'],
+        origin: ['http://localhost:3000', 'http://192.168.1.189:8000'],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     }
@@ -37,17 +43,27 @@ const io = socket(server, {
 // listen to port 8000
 io.on('connection', (socket) => {
     console.log('a user connected');
-    socket.on('join-room', (roomNumber) => {
-        socket.join(roomNumber);
-        console.log(`User joined room ${roomNumber}`);
+    socket.on('joinRoom', ({ roomNumber, secretNumber }, callback) => {
+        // Replace with actual room validation logic
+        const roomExists = true;
+        if (roomExists) {
+            socket.join(roomNumber);
+            console.log(`User joined room ${roomNumber}`);
+            callback({ room: roomNumber });
+        } else {
+            callback({ error: "Room does not exist or secret number is incorrect" });
+        }
     });
+
+    socket.on('createRoom', ({ secretNumber, room }, callback) => {
+        // Here room is generated client-side, so no need to create a new room
+        socket.join(room);
+        console.log(`Room created: roomNumber=${room}, secretNumber=${secretNumber}`);
+        callback({ room });
+    });
+
     socket.on('disconnect', () => {
         console.log('a user disconnected');
-    });
-    // Create room
-    socket.on('create-room', (data) => {
-        console.log('Create room:', data);
-        io.emit('create-room', data);
     });
     // Join room
     socket.on('join-room', (data) => {
@@ -72,7 +88,6 @@ io.on('connection', (socket) => {
 });
 
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-    console.log(`Server started on http://localhost:${PORT}`);
-});
+module.exports = app;
+
+

@@ -7,7 +7,7 @@ const User = require('../model/user');
 // Create room
 roomRouter.post('/create', async (req, res) => {
     try {
-        const { createdBy, playerNumber } = req.body;
+        const { createdBy } = req.body;
 
         // Kiểm tra xem người dùng có tồn tại không
         const user = await User.findById(createdBy);
@@ -19,7 +19,6 @@ roomRouter.post('/create', async (req, res) => {
         const newRoom = new Room({
             createdBy,
             players: [createdBy],  // Thêm người tạo vào danh sách người chơi
-            playerNumbers: [{ player: createdBy, number: playerNumber }], // Khởi tạo số của người chơi
             gameStatus: 'waiting',
             currentTurn: createdBy  // Khởi tạo currentTurn với người chơi đầu tiên
         });
@@ -33,6 +32,7 @@ roomRouter.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 // Join room
 roomRouter.post('/join', async (req, res) => {
     try {

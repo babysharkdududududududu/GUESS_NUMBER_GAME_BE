@@ -4,7 +4,6 @@ const Room = require('../model/room');
 const User = require('../model/user');
 
 // Create room
-// Create room
 roomRouter.post('/create', async (req, res) => {
     try {
         const { createdBy, playerNumber } = req.body;

@@ -3,12 +3,9 @@ const app = express();
 const userRouter = require('./router/userRouter');
 const roomRouter = require('./router/roomRouter');
 const socket = require('socket.io');
-const http = require('http');
-const server = http.createServer(app);
 const cors = require('cors');
 
 require('dotenv').config();
-
 app.use(cors());
 app.use(express.json());
 app.use('/user', userRouter);
@@ -17,11 +14,11 @@ app.use('/room', roomRouter);
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
+
+const PORT = 8000;
+const hostName = '192.168.1.9';
+const server = app.listen(PORT, hostName, () => {
+    console.log(`Example app listening on: http://${hostName}:${PORT}/`);
 });
 
 // CORS configuration for socket.io
@@ -71,8 +68,4 @@ io.on('connection', (socket) => {
     });
 });
 
-
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-    console.log(`Server started on http://localhost:${PORT}`);
-});
+module.exports = app;

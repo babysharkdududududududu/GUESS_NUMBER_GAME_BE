@@ -6,13 +6,19 @@ const User = require('../model/user');
 userRouter.post('/create', async (req, res) => {
     try {
         const { username } = req.body;
+        if (!username) {
+            throw new Error('Username is required');
+        }
         const user = new User({ username });
         await user.save();
-        res.status(201).json({ user });
+        res.status(200).json({ user });
     } catch (error) {
+        console.error('Error creating user:', error); // Log lỗi chi tiết
         res.status(400).json({ error: error.message });
     }
 });
+
+
 //get detail user
 userRouter.get('/:id', async (req, res) => {
     try {
@@ -29,6 +35,7 @@ userRouter.get('/:id', async (req, res) => {
     }
 }
 );
+
 // get all user
 userRouter.get('/', async (req, res) => {
     try {

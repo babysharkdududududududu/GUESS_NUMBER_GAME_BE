@@ -89,7 +89,13 @@ roomRouter.post('/leave', async (req, res) => {
             await Room.findByIdAndDelete(room._id);
             return res.status(200).json({ message: 'Room deleted' });
         }
-
+        //kiểm tra nếu người chơi rời phòng thì xóa người chơi đó
+        if (room.players.toString() === userId) {
+            await User.findByIdAndDelete(userId);
+            await Room.updateOne({ roomNumber: roomNumber }, { $set: { guesses: [] } });
+            return res.status(200).json({ message: 'Người chơi đã thoát khỏi phòng, hãy đợi người khác nhé' });
+        }
+        await Room.updateOne({ _id: room._id }, { $set: { guesses: [] } });
         await room.save();
         res.status(200).json(room);
     } catch (error) {
@@ -173,54 +179,84 @@ roomRouter.post('/start', async (req, res) => {
 // });
 roomRouter.post('/guess', async (req, res) => {
     try {
-      const { roomNumber, userId, number } = req.body;
-      const room = await Room.findOne({ roomNumber });
-  
-      if (!room) {
-        return res.status(404).json({ message: 'Room not found' });
-      }
-  
-      if (room.gameStatus !== 'ongoing') {
-        return res.status(400).json({ message: 'Game not started' });
-      }
-  
-      if (!room.players.includes(userId)) {
-        return res.status(404).json({ message: 'User not in room' });
-      }
-  
-      if (room.currentTurn.toString() !== userId) {
-        return res.status(400).json({ message: 'Not your turn' });
-      }
-  
-      room.guesses.push({ user: userId, number });
-  
-      const opponent = room.players.find(player => player.toString() !== userId);
-      const opponentNumber = room.playerNumbers.find(pn => pn.player.toString() === opponent.toString()).number;
-  
-      if (parseInt(number) === opponentNumber) {
-        room.gameStatus = 'finished';
-        room.winner = userId;
-        await room.save();
-        return res.status(200).json({
-          message: 'Correct guess! Game over.',
-          winner: userId,
-          result: { winner: userId, result: room.guesses },
-        });
-      } else {
-        room.currentTurn = opponent;
-        await room.save();
-        return res.status(200).json({
-          message: 'Incorrect guess. Turn switched.',
-          result: { currentTurn: room.currentTurn.toString(), result: room.guesses },
-        });
-      }
+        const { roomNumber, userId, number } = req.body;
+        const room = await Room.findOne({ roomNumber });
+
+        if (!room) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+        if (room.gameStatus !== 'ongoing') {
+            return res.status(400).json({ message: 'Game not started' });
+        }
+        if (!room.players.includes(userId)) {
+            return res.status(404).json({ message: 'User not in room' });
+        }
+        if (room.currentTurn.toString() !== userId) {
+            return res.status(400).json({ message: 'Not your turn' });
+        }
+        room.guesses.push({ user: userId, number });
+
+        const opponent = room.players.find(player => player.toString() !== userId);
+        const opponentNumber = room.playerNumbers.find(pn => pn.player.toString() === opponent.toString()).number;
+
+
+        if (parseInt(number) === opponentNumber) {
+            room.gameStatus = 'finished';
+            room.winner = userId;
+            const winningPlayer = await User.findById(userId);
+            winningPlayer.numberWin += 1;
+            if (winningPlayer.numberWin < 10) {
+                winningPlayer.point += 10;
+            }
+            else if (winningPlayer.numberWin < 50) {
+                winningPlayer.point += 5;
+            }
+            else if (winningPlayer.numberWin < 100) {
+                winningPlayer.point += 2;
+            }
+            else {
+                winningPlayer.point += 1;
+            }
+            await winningPlayer.save();
+            const losingPlayer = await User.findById(opponent);
+            if (losingPlayer.numberLose < 10) {
+                losingPlayer.point = 0;
+            }
+            else if (losingPlayer.point <= 0) {
+                losingPlayer.point = 0;
+            }
+            else if (losingPlayer.numberLose < 50) {
+                losingPlayer.point -= 2;
+            }
+            else if (losingPlayer.numberLose < 100) {
+                losingPlayer.point -= 5;
+            }
+            else {
+                losingPlayer.point -= 8;
+            }
+            losingPlayer.numberLose += 1;
+            await losingPlayer.save();
+            await room.save();
+            return res.status(200).json({
+                message: 'Correct guess! Game over.',
+                winner: userId,
+                result: { winner: userId, result: room.guesses },
+            });
+        } else {
+            room.currentTurn = opponent;
+            await room.save();
+            return res.status(200).json({
+                message: 'Incorrect guess. Turn switched.',
+                result: { currentTurn: room.currentTurn.toString(), result: room.guesses },
+            });
+        }
     } catch (error) {
-      console.error('Error making guess:', error);
-      return res.status(500).json({ message: 'Internal server error' });
+        console.error('Error making guess:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
-  });
-  
-  
+});
+
+
 
 // Get room
 roomRouter.get('/get/:roomId', async (req, res) => {
@@ -261,6 +297,20 @@ roomRouter.delete('/delete/:roomId', async (req, res) => {
         res.status(200).json({ message: 'Room deleted' });
     } catch (error) {
         console.error('Error deleting room:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+//delete room with createdBy
+roomRouter.delete('/delete-rooms/:createdBy', async (req, res) => {
+    try {
+        const { createdBy } = req.params;
+        const result = await Room.deleteMany({ createdBy: createdBy });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'No rooms found to delete' });
+        }
+        res.status(200).json({ message: 'Rooms deleted', deletedCount: result.deletedCount });
+    } catch (error) {
+        console.error('Error deleting rooms:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });

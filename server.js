@@ -24,7 +24,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.32";
+const hostName = "192.168.1.39";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {
@@ -76,21 +76,7 @@ io.on('connection', (socket) => {
         socket.join(data.room); // Ensure socket joins the room
         socket.to(data.room).emit('join-room', data); // Broadcast to all clients in room except sender
     });
-    // socket.on('join-room', async ({ roomId, userId }) => {
-    //     socket.join(roomId);
-    //     const room = await room.findById(roomId).populate('players playerNumbers.player');
 
-    //     if (room) {
-    //         const opponent = room.players.find(player => player._id.toString() !== userId);
-    //         if (opponent) {
-    //             const opponentNumber = room.playerNumbers.find(pn => pn.player.toString() === opponent._id.toString()).number;
-    //             socket.emit('opponent-info', {
-    //                 opponentId: opponent._id,
-    //                 opponentSecretNumber: opponentNumber
-    //             });
-    //         }
-    //     }
-    // });
 
     // Leave room
     socket.on('leave-room', (data) => {

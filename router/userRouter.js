@@ -15,7 +15,6 @@ userRouter.post('/create', async (req, res) => {
             res.json({ user });
         }
     } catch (error) {
-        console.error('Error creating user:', error); // Log lỗi chi tiết
         res.status(400).json({ error: error.message });
     }
 });

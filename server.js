@@ -24,7 +24,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.39";
+const hostName = "192.168.1.16";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {
@@ -55,11 +55,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // socket.on('createRoom', ({ secretNumber, room }, callback) => {
-    //     socket.join(room);
-    //     console.log(`Room created: roomNumber=${room}, secretNumber=${secretNumber}`);
-    //     callback({ room });
-    //   });
     socket.on("create-room", (data) => {
         const { roomNumber, secretNumber } = data;
         socket.join(roomNumber);
@@ -96,6 +91,7 @@ io.on('connection', (socket) => {
         console.log('Guess number:', data);
         socket.to(data.room).emit('guess-number', data); // Broadcast to all clients in room except sender
     });
+
 });
 
 module.exports = app;

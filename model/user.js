@@ -8,11 +8,26 @@ mongoose.connect(uri, { useUnifiedTopology: true })
 
 // user schema
 const Schema = mongoose.Schema;
+const gamePerDaySchema = new Schema({
+    date: { type: String, required: true },
+    count: { type: Number, default: 0 },
+}, {
+    _id: false
+});
+const winPerDaySchema = new Schema({
+    date: { type: String, required: true },
+    count: { type: Number, default: 0 },
+}, {
+    _id: false
+});
 const userSchema = new Schema({
     username: { type: String, required: true, unique: true },
     point: { type: Number, default: 0 },
     numberWin: { type: Number, default: 0 },
-    numberLose: { type: Number, default: 0 }
+    numberLose: { type: Number, default: 0 },
+    numberOfGame: { type: Number, default: 0 },
+    gamesPerDay: { type: [gamePerDaySchema], default: [] },
+    winsPerDay: { type: [winPerDaySchema], default: [] }
 }, {
     timestamps: true
 });

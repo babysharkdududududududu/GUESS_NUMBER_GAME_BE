@@ -52,6 +52,7 @@ roomRouter.post('/join', async (req, res) => {
 
         room.players.push(userId);
         room.playerNumbers.push({ player: userId, number: playerNumber });
+        user.numberOfGame += 1;
 
         if (room.players.length === 2) {
             room.gameStatus = 'ongoing';
@@ -130,53 +131,6 @@ roomRouter.post('/start', async (req, res) => {
     }
 });
 
-// Make guess
-// roomRouter.post('/guess', async (req, res) => {
-//     try {
-//         const { roomNumber, userId, number } = req.body;
-//         const room = await Room.findOne({ roomNumber });
-//         if (!room) {
-//             return res.status(404).json({ message: 'Room not found' });
-//         }
-
-//         if (room.gameStatus !== 'ongoing') {
-//             return res.status(400).json({ message: 'Game not started' });
-//         }
-
-//         if (!room.players.includes(userId)) {
-//             return res.status(404).json({ message: 'User not in room' });
-//         }
-
-//         if (room.currentTurn.toString() !== userId) {
-//             return res.status(400).json({ message: 'Not your turn' });
-//         }
-
-//         room.guesses.push({ user: userId, number });
-//         const opponent = room.players.find(player => player.toString() !== userId);
-//         const opponentNumber = room.playerNumbers.find(pn => pn.player.toString() === opponent.toString()).number;
-
-//         if (parseInt(number) === opponentNumber) {
-//             room.gameStatus = 'finished';
-//             room.winner = userId;
-//             await room.save();
-//             return res.status(200).json({
-//                 message: 'Correct guess! Game over.',
-//                 winner: userId,
-//                 room
-//             });
-//         } else {
-//             room.currentTurn = opponent;
-//             await room.save();
-//             return res.status(200).json({
-//                 message: 'Incorrect guess. Turn switched.',
-//                 room
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Error making guess:', error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// });
 roomRouter.post('/guess', async (req, res) => {
     try {
         const { roomNumber, userId, number } = req.body;
@@ -194,17 +148,54 @@ roomRouter.post('/guess', async (req, res) => {
         if (room.currentTurn.toString() !== userId) {
             return res.status(400).json({ message: 'Not your turn' });
         }
+
+        const now = new Date();
+        const elapsedTime = (now - new Date(room.currentTurnStartTime)) / 1000; // elapsed time in seconds
+
+        if (elapsedTime > 60) {
+            const opponent = room.players.find(player => player.toString() !== userId);
+            room.currentTurn = opponent;
+            room.currentTurnStartTime = now;
+            await room.save();
+            return res.status(200).json({
+                message: 'Turn time exceeded. Turn switched.',
+                result: { currentTurn: room.currentTurn.toString(), result: room.guesses },
+            });
+        }
+
         room.guesses.push({ user: userId, number });
 
         const opponent = room.players.find(player => player.toString() !== userId);
         const opponentNumber = room.playerNumbers.find(pn => pn.player.toString() === opponent.toString()).number;
 
-
         if (parseInt(number) === opponentNumber) {
             room.gameStatus = 'finished';
             room.winner = userId;
             const winningPlayer = await User.findById(userId);
+            const losingPlayer = await User.findById(opponent);
+            const currentDate = new Date().toISOString().slice(0, 10); // Lấy ngày hiện tại
+
+            const updateGamesPerDay = (player) => {
+                const today = player.gamesPerDay.find(game => game.date === currentDate);
+                if (today) {
+                    today.count += 1;
+                } else {
+                    player.gamesPerDay.push({ date: currentDate, count: 1 });
+                }
+            };
+            const updateWinsPerDay = (player) => {
+                const today = player.winsPerDay.find(win => win.date === currentDate);
+                if (today) {
+                    today.count += 1;
+                } else {
+                    player.winsPerDay.push({ date: currentDate, count: 1 });
+                }
+            };
+
             winningPlayer.numberWin += 1;
+            winningPlayer.numberOfGame += 1;
+            updateGamesPerDay(winningPlayer);
+            updateWinsPerDay(winningPlayer);
             if (winningPlayer.numberWin < 10) {
                 winningPlayer.point += 10;
             }
@@ -218,7 +209,10 @@ roomRouter.post('/guess', async (req, res) => {
                 winningPlayer.point += 1;
             }
             await winningPlayer.save();
-            const losingPlayer = await User.findById(opponent);
+
+            losingPlayer.numberLose += 1;
+            losingPlayer.numberOfGame += 1;
+            updateGamesPerDay(losingPlayer);
             if (losingPlayer.numberLose < 10) {
                 losingPlayer.point = 0;
             }
@@ -234,7 +228,6 @@ roomRouter.post('/guess', async (req, res) => {
             else {
                 losingPlayer.point -= 8;
             }
-            losingPlayer.numberLose += 1;
             await losingPlayer.save();
             await room.save();
             return res.status(200).json({
@@ -244,6 +237,7 @@ roomRouter.post('/guess', async (req, res) => {
             });
         } else {
             room.currentTurn = opponent;
+            room.currentTurnStartTime = now;
             await room.save();
             return res.status(200).json({
                 message: 'Incorrect guess. Turn switched.',
@@ -257,8 +251,6 @@ roomRouter.post('/guess', async (req, res) => {
 });
 
 
-
-// Get room
 roomRouter.get('/get/:roomId', async (req, res) => {
     try {
         const { roomNumber } = req.params;

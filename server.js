@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const userRouter = require('./router/userRouter');
 const roomRouter = require('./router/roomRouter');
+const friendRouter = require('./router/friendRouter');
 const socket = require('socket.io');
 const cors = require('cors');
 
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routers
 app.use('/user', userRouter);
 app.use('/room', roomRouter);
+app.use('/friend', friendRouter);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -24,7 +26,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.8";
+const hostName = "192.168.114.154";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {
@@ -34,7 +36,7 @@ const server = app.listen(port, hostName, () => {
 // Socket.IO configuration
 const io = socket(server, {
     cors: {
-        origin: ['http://localhost:3000', 'http://192.168.1.8:8000'],
+        origin: ['http://localhost:3000', 'http://192.168.114.154:8000'],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     }
@@ -55,11 +57,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // socket.on('createRoom', ({ secretNumber, room }, callback) => {
-    //     socket.join(room);
-    //     console.log(`Room created: roomNumber=${room}, secretNumber=${secretNumber}`);
-    //     callback({ room });
-    //   });
     socket.on("create-room", (data) => {
         const { roomNumber, secretNumber } = data;
         socket.join(roomNumber);
@@ -96,6 +93,7 @@ io.on('connection', (socket) => {
         console.log('Guess number:', data);
         socket.to(data.room).emit('guess-number', data); // Broadcast to all clients in room except sender
     });
+
 });
 
 module.exports = app;

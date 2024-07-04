@@ -74,10 +74,12 @@ const roomSchema = new Schema({
         createdAt: { type: Date, default: Date.now }
     }],
     currentTurn: { type: Schema.Types.ObjectId, ref: 'User' },
-    winner: { type: Schema.Types.ObjectId, ref: 'User' }  // Thêm thuộc tính winner
+    currentTurnStartTime: { type: Date, default: Date.now },  // Thêm thuộc tính này
+    winner: { type: Schema.Types.ObjectId, ref: 'User' }
 }, {
     timestamps: true
 });
+
 
 // Pre-validate middleware to generate room number
 roomSchema.pre('validate', async function (next) {

@@ -1,0 +1,56 @@
+[
+    {
+        "title": "Chiến Thắng",
+        "description": "Chiến thắng 1 trận đấu",
+        "points": 5,
+        "condition": {
+            "type": "win",
+            "value": 1
+        }
+    },
+    {
+        "title": "Chiến Thắng",
+        "description": "Chiến thắng 5 trận đấu",
+        "points": 10,
+        "condition": {
+            "type": "win",
+            "value": 5
+        }
+    },
+    {
+        "title": "Chiến Thắng",
+        "description": "Chiến thắng 10 trận đấu",
+        "points": 15,
+        "condition": {
+            "type": "win",
+            "value": 10
+        }
+    },
+    {
+        "title": "Chơi",
+        "description": "Chơi 1 trận đấu",
+        "points": 1,
+        "condition": {
+            "type": "game",
+            "value": 1
+        }
+    },
+    {
+        "title": "Chơi",
+        "description": "Chơi 5 trận đấu",
+        "points": 5,
+        "condition": {
+            "type": "game",
+            "value": 5
+        }
+    },
+    {
+        "title": "Chơi",
+        "description": "Chơi 10 trận đấu",
+        "points": 10,
+        "condition": {
+            "type": "game",
+            "value": 10
+        }
+    }
+]

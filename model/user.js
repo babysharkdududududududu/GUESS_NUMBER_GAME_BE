@@ -30,6 +30,8 @@ const userSchema = new Schema({
     winsPerDay: { type: [winPerDaySchema], default: [] },
     avatar: { type: String},
     friends: { type: Array, default: [] },
+    coin: { type: Number, default: 0 },
+    level : { type: Number, default: 1 },
 }, {
     timestamps: true
 });

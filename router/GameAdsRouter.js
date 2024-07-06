@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const GameAds = require('../model/gameAds');
 
+// middleware
+async function getGameAd(req, res, next) {
+    let gameAd;
+    try {
+        gameAd = await GameAds.findById(req.params.id);
+        if (gameAd == null) {
+            return res.status(404).json({ message: 'Cannot find game ad' });
+        }
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+    res.gameAd = gameAd;
+    next();
+}
+
 // get all game ads
 router.get('/', async (req, res) => {
     try {

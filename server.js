@@ -3,6 +3,7 @@ const app = express();
 const userRouter = require('./router/userRouter');
 const roomRouter = require('./router/roomRouter');
 const friendRouter = require('./router/friendRouter');
+const gameRouter = require('./router/GameAdsRouter');
 const socket = require('socket.io');
 const cors = require('cors');
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use('/user', userRouter);
 app.use('/room', roomRouter);
 app.use('/friend', friendRouter);
+app.use('/ads', gameRouter);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');

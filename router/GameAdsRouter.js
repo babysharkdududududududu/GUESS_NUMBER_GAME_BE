@@ -85,13 +85,17 @@ router.patch('/:id', getGameAd, async (req, res) => {
 });
 
 // delete game ad
-router.delete('/:id', getGameAd, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
-        await res.gameAd.remove();
+        const gameAd = await GameAds.findByIdAndDelete(req.params.id);
+        if (!gameAd) {
+            return res.status(404).json({ message: 'Game ad not found' });
+        }
         res.json({ message: 'Deleted game ad' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;

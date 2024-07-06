@@ -82,13 +82,17 @@ router.patch('/:id', getNotification, async (req, res) => {
 });
 
 // delete notification
-router.delete('/:id', getNotification, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
-        await res.notification.remove();
-        res.json({ message: 'Notification deleted' });
+        const notification = await Notification.findByIdAndDelete(req.params.id);
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+        res.json({ message: 'Deleted notification' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;

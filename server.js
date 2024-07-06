@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.4"
+const hostName = "0.0.0.0"
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {

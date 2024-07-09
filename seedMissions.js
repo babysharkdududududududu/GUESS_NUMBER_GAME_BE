@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const Mission = require('./model/misson'); // Đảm bảo path này đúng với đường dẫn tới model của bạn
+const Mission = require('./model/misson'); // Ensure this path is correct to your model
 require('dotenv').config(); // Load environment variables from .env file
 
 const uri = process.env.MONGODB_URI || '';

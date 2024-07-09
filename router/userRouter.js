@@ -2,27 +2,18 @@ const express = require('express');
 const userRouter = express.Router();
 const User = require('../model/user');
 
-// const rewardData = [
-//     { missionName: "Điểm danh", reward: 1, experience: 10 },
-//     { missionName: "Chiến thắng 3 trận", reward: 3, experience: 30, condition: { type: "wins", count: 1 } },
-//     { missionName: "Chơi 10 trận", reward: 5, experience: 50, condition: { type: "games", count: 1 } },
-//     { missionName: "Chơi với 5 người bạn", reward: 4, experience: 40, condition: { type: "games", count: 1 } },
-//     { missionName: "Chiến thắng 10 trận", reward: 8, experience: 80, condition: { type: "wins", count: 1 } },
-// ];
-
-
 // Create user or login if user already exists
 userRouter.post('/create', async (req, res) => {
     try {
         const { username } = req.body;
-        let user = await User.findOne({ username }).exec();
+        let user = await User.findOne({ username });
+
         if (!user) {
             const newUser = new User({ username });
             user = await newUser.save();
-            res.json({ user: newUser });
-        } else {
-            res.json({ user });
         }
+
+        res.json({ user });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -64,19 +55,19 @@ userRouter.get('/username/:username', async (req, res) => {
 // get all user
 userRouter.get('/', async (req, res) => {
     try {
-        const users = await User.find().exec();
-        res.json({ users });
+        const users = await User.find({});
+        res.json(users);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
-);
+});
+
 // attendance
 userRouter.put('/attendance/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const user
-            = await User.findByIdAndUpdate(id, { $inc: { heart: 1 } }, { new: true }).exec();
+            = await User.findByIdAndUpdate(id, { $inc: { point: 1 } }, { new: true }).exec();
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -85,22 +76,6 @@ userRouter.put('/attendance/:id', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
-// missions
-// userRouter.put('/missions/:id', async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { reward } = req.body;
-
-//         const user = await User.findByIdAndUpdate(id, { $inc: { heart: reward } }, { new: true }).exec();
-//         if (!user) {
-//             return res.status(404).json({ error: 'User not found' });
-//         }
-//         res.json({ user });
-//     } catch (error) {
-//         res.status(400).json({ error: error.message });
-//     }
-// }
-// );
 userRouter.put('/missions/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -112,6 +87,9 @@ userRouter.put('/missions/:id', async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+        const newMission = { missionName, date: nowFormat };
+        user.missions.push(newMission);
+        await user.save();
 
         const matchingMission = rewardData.find(mission => mission.missionName === missionName);
         console.log(`Matching mission: ${JSON.stringify(matchingMission)}`);
@@ -129,6 +107,7 @@ userRouter.put('/missions/:id', async (req, res) => {
                 const gamesCount = gamesToday ? gamesToday.count : 0;
                 console.log(`Games today: ${gamesCount}, Required: ${matchingMission.condition.count}`);
                 console.log(`Games today: ${gamesToday}, Required: ${matchingMission.condition.count}`);
+
                 conditionMet = gamesCount >= matchingMission.condition.count;
             } else if (matchingMission.condition.type === "wins") {
                 const winsToday = user.winsPerDay.find(day => day.date === nowFormat);
@@ -158,10 +137,10 @@ userRouter.put('/missions/:id', async (req, res) => {
 
 const rewardData = [
     { missionName: "Điểm danh", reward: 1, experience: 10 },
-    { missionName: "Chiến thắng 3 trận", reward: 3, experience: 30, condition: { type: "wins", count: 1 } },
-    { missionName: "Chơi 10 trận", reward: 5, experience: 50, condition: { type: "games", count: 1 } },
-    { missionName: "Chơi với 5 người bạn", reward: 4, experience: 40, condition: { type: "games", count: 5 } },
-    { missionName: "Chiến thắng 10 trận", reward: 8, experience: 80, condition: { type: "wins", count: 1 } },
+    { missionName: "Chiến thắng 3 trận", reward: 3, experience: 30, condition: { type: "wins", count: 0 } },
+    { missionName: "Chơi 10 trận", reward: 5, experience: 50, condition: { type: "wins", count: 0 } },
+    { missionName: "Chơi với 5 người bạn", reward: 4, experience: 40, condition: { type: "games", count: 0 } },
+    { missionName: "Chiến thắng 10 trận", reward: 8, experience: 80, condition: { type: "wins", count: 0 } },
 ];
 
 

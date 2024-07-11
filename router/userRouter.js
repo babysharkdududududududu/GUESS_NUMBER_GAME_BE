@@ -20,13 +20,13 @@ userRouter.post('/create', async (req, res) => {
                 "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060514/jqwTAsYWUN_lmbqar.png"
             ];
             const randomIndex = Math.floor(Math.random() * avatarImages.length);
-            const newUser = new User({ username, avatar: avatarImages[randomIndex] });
+            const newUser = new User({ username, password, avatar: avatarImages[randomIndex] });
             user = await newUser.save();
             res.json({ user: newUser });
         }
-        else if (user.password === password) res.json(
-            { user }
-        );
+        else if (user.password === password) {
+            res.json({ user });
+        }
         else {
             res.status(400).json({ error: 'User already exists' });
         }
@@ -34,6 +34,7 @@ userRouter.post('/create', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+
 
 //get detail user
 userRouter.get('/:id', async (req, res) => {

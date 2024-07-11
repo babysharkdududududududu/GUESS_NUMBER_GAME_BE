@@ -23,7 +23,7 @@ userRouter.post('/create', async (req, res) => {
             const newUser = new User({ username, avatar: avatarImages[randomIndex] });
             user = await newUser.save();
             res.json({ user: newUser });
-        } 
+        }
         else if (user.password === password) res.json(
             { user }
         );

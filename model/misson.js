@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const missionSchema = new Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    points: { type: Number, required: true },
+    missionName: { type: String, required: true },
+    reward: { type: Number, required: true },
+    experience: { type: Number, required: true },
     condition: {
         type: {
             type: String,
-            required: true,
-            enum: ['win', 'game']
+            enum: ['wins', 'games'], // Loại điều kiện có thể là 'wins' hoặc 'games'
+            required: true
         },
-        value: { type: Number, required: true }
+        count: { type: Number, default: 0 } // Số lần thực hiện điều kiện, mặc định là 0
     }
 });
 

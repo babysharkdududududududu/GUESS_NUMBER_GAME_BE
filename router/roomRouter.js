@@ -85,10 +85,17 @@ roomRouter.post('/leave', async (req, res) => {
         if (room.players.length < 2) {
             room.gameStatus = 'waiting';
         }
-        //kiểm tra nếu chủ phòng rời phòng thì xóa phòng
+        //kiểm tra nếu chủ phòng rời phòng thì chuyển chủ phòng mới và xóa chủ phòng cũ
         if (room.createdBy.toString() === userId) {
-            await Room.findByIdAndDelete(room._id);
-            return res.status(200).json({ message: 'Room deleted' });
+            if (room.players.length > 0) {
+                // Assign the next player as the new owner
+                room.createdBy = room.players[0];
+                room.currentTurn = room.players[0];
+            } else {
+                // No other players left, delete the room
+                await Room.findByIdAndDelete(room._id);
+                return res.status(200).json({ message: 'Room deleted' });
+            }
         }
         //kiểm tra nếu người chơi rời phòng thì xóa người chơi đó
         if (room.players.toString() === userId) {
@@ -214,7 +221,7 @@ roomRouter.post('/guess', async (req, res) => {
             losingPlayer.numberOfGame += 1;
             updateGamesPerDay(losingPlayer);
             if (losingPlayer.numberLose < 10) {
-                losingPlayer.point = 0;
+                losingPlayer.point = losingPlayer.point;
             }
             else if (losingPlayer.point <= 0) {
                 losingPlayer.point = 0;

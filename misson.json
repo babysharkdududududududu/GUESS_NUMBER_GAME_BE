@@ -1,56 +1,44 @@
 [
     {
-        "title": "Chiến Thắng",
+        "title": "win",
         "description": "Chiến thắng 1 trận đấu",
         "points": 5,
-        "condition": {
-            "type": "win",
-            "value": 1
-        }
+        "condition": 0
     },
     {
-        "title": "Chiến Thắng",
+        "title": "win",
         "description": "Chiến thắng 5 trận đấu",
         "points": 10,
-        "condition": {
-            "type": "win",
-            "value": 5
-        }
+        "condition": 0
     },
     {
-        "title": "Chiến Thắng",
+        "title": "win",
         "description": "Chiến thắng 10 trận đấu",
         "points": 15,
-        "condition": {
-            "type": "win",
-            "value": 10
-        }
+        "condition": 0
     },
     {
-        "title": "Chơi",
+        "title": "game",
         "description": "Chơi 1 trận đấu",
         "points": 1,
-        "condition": {
-            "type": "game",
-            "value": 1
-        }
+        "condition": 0
     },
     {
-        "title": "Chơi",
+        "title": "game",
         "description": "Chơi 5 trận đấu",
         "points": 5,
-        "condition": {
-            "type": "game",
-            "value": 5
-        }
+        "condition": 0
     },
     {
-        "title": "Chơi",
+        "title": "game",
         "description": "Chơi 10 trận đấu",
         "points": 10,
-        "condition": {
-            "type": "game",
-            "value": 10
-        }
+        "condition": 0
+    },
+    {
+        "title": "attendance",
+        "description": "Điểm danh",
+        "points": 10,
+        "condition": 0
     }
 ]

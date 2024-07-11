@@ -5,6 +5,7 @@ const roomRouter = require('./router/roomRouter');
 const friendRouter = require('./router/friendRouter');
 const gameRouter = require('./router/GameAdsRouter');
 const notificationRouter = require('./router/notificationRouter');
+const missionRouter = require('./router/missonRouter');
 const socket = require('socket.io');
 const cors = require('cors');
 
@@ -20,6 +21,8 @@ app.use('/room', roomRouter);
 app.use('/friend', friendRouter);
 app.use('/ads', gameRouter);
 app.use('/notification', notificationRouter);
+app.use('/mission', missionRouter);
+
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -30,7 +33,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.4";
+const hostName = "0.0.0.0";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {

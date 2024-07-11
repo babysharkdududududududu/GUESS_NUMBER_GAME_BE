@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
+const Mission = require('./misson');
 
 const uri = process.env.MONGODB_URI;
 mongoose.connect(uri, { useUnifiedTopology: true })
@@ -8,20 +9,25 @@ mongoose.connect(uri, { useUnifiedTopology: true })
 
 // user schema
 const Schema = mongoose.Schema;
+
 const gamePerDaySchema = new Schema({
     date: { type: String, required: true },
     count: { type: Number, default: 0 },
-}, {
-    _id: false
-});
+}, { _id: false });
+
 const winPerDaySchema = new Schema({
     date: { type: String, required: true },
     count: { type: Number, default: 0 },
-}, {
-    _id: false
-});
+}, { _id: false });
+
+const missionSchema = new Schema({
+    missionName: { type: String, required: true },
+    date: { type: String, required: true },
+}, { _id: false });
+
 const userSchema = new Schema({
     username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     point: { type: Number, default: 0 },
     numberWin: { type: Number, default: 0 },
     numberLose: { type: Number, default: 0 },
@@ -32,6 +38,7 @@ const userSchema = new Schema({
     friends: { type: Array, default: [] },
     coin: { type: Number, default: 0 },
     level : { type: Number, default: 1 },
+    missions: { type: [missionSchema], default: [] }
 }, {
     timestamps: true
 });

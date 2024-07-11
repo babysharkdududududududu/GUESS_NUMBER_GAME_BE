@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "0.0.0.0";
+const hostName = "192.168.1.4";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {
@@ -48,7 +48,11 @@ const io = socket(server, {
 
 io.on('connection', (socket) => {
     console.log('A user connected');
-
+    //test socket
+    socket.on("send-message", (data) => {
+        console.log("send-message", data);
+        io.emit("receive-message", data);
+    });
     socket.on('joinRoom', ({ roomNumber, secretNumber }, callback) => {
         // Replace with actual room validation logic
         const roomExists = true;

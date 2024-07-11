@@ -5,15 +5,18 @@ const User = require('../model/user');
 // Create user or login if user already exists
 userRouter.post('/create', async (req, res) => {
     try {
-        const { username } = req.body;
-        let user = await User.findOne({ username });
-
+        const { username, password } = req.body;
+        let user = await User.findOne({ username }).exec();
         if (!user) {
-            const newUser = new User({ username });
-            user = await newUser.save();
+            user = new User({ username, password });
+            await user.save();
+            res.json({ user });
         }
-
-        res.json({ user });
+        else if (user.password === password) res.json({ user }
+        );
+        else {
+            res.status(400).json({ error: 'User already exists' });
+        }
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -53,9 +56,19 @@ userRouter.get('/username/:username', async (req, res) => {
 );
 
 // get all user
+// userRouter.get('/', async (req, res) => {
+//     try {
+//         const users = await User.find({});
+
+//         res.json(users);
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// });
 userRouter.get('/', async (req, res) => {
     try {
         const users = await User.find({});
+        users.sort((a, b) => b.point - a.point);
         res.json(users);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -133,6 +146,9 @@ userRouter.put('/missions/:id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+// get all user for chart with point
+
+
 
 
 const rewardData = [

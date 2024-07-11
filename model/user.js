@@ -27,6 +27,7 @@ const missionSchema = new Schema({
 
 const userSchema = new Schema({
     username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     point: { type: Number, default: 0 },
     numberWin: { type: Number, default: 0 },
     numberLose: { type: Number, default: 0 },

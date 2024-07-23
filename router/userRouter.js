@@ -26,18 +26,26 @@ userRouter.post('/create', async (req, res) => {
 userRouter.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User
-            .findById(id)
-            .exec();
+        const now = new Date();
+        const nowFormat = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        const user = await User.findById(id).exec();
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+        // Remove missions from previous days
+        user.missions = user.missions.filter(mission => mission.date === nowFormat);
+
+        // Save the user with the updated missions array
+        await user.save();
+
         res.json({ user });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
-);
+});
+
 // get user by username
 userRouter.get('/username/:username', async (req, res) => {
     try {
@@ -89,6 +97,64 @@ userRouter.put('/attendance/:id', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+// userRouter.put('/missions/:id', async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { missionName } = req.body;
+//         const now = new Date();
+//         const nowFormat = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+//         const user = await User.findById(id).exec();
+//         if (!user) {
+//             return res.status(404).json({ error: 'User not found' });
+//         }
+//         const newMission = { missionName, date: nowFormat };
+//         user.missions.push(newMission);
+//         await user.save();
+
+//         const matchingMission = rewardData.find(mission => mission.missionName === missionName);
+//         console.log(`Matching mission: ${JSON.stringify(matchingMission)}`);
+//         console.log(`Matching mission: ${JSON.stringify(matchingMission.condition)}`);
+
+//         if (!matchingMission) {
+//             return res.status(400).json({ error: 'Mission not found' });
+//         }
+
+//         let conditionMet = false;
+
+//         if (matchingMission.condition) {
+//             if (matchingMission.condition.type === "games") {
+//                 const gamesToday = user.gamesPerDay.find(day => day.date === nowFormat);
+//                 const gamesCount = gamesToday ? gamesToday.count : 0;
+//                 console.log(`Games today: ${gamesCount}, Required: ${matchingMission.condition.count}`);
+//                 console.log(`Games today: ${gamesToday}, Required: ${matchingMission.condition.count}`);
+
+//                 conditionMet = gamesCount >= matchingMission.condition.count;
+//             } else if (matchingMission.condition.type === "wins") {
+//                 const winsToday = user.winsPerDay.find(day => day.date === nowFormat);
+//                 const winsCount = winsToday ? winsToday.count : 0;
+//                 console.log(`Wins today: ${winsCount}, Required: ${matchingMission.condition.count}`);
+//                 conditionMet = winsCount >= matchingMission.condition.count;
+//             }
+//         } else {
+//             conditionMet = true;
+//         }
+
+//         console.log("Condition Met:", conditionMet);
+
+//         if (conditionMet) {
+//             const updatedUser = await User.findByIdAndUpdate(id, { $inc: { point: matchingMission.reward } }, { new: true }).exec();
+//             return res.json({ user: updatedUser });
+//         }
+
+//         // If conditions are not met, return the user without changes
+//         res.json({ user });
+
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+// get all user for chart with point
 userRouter.put('/missions/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -100,53 +166,44 @@ userRouter.put('/missions/:id', async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+        // Remove missions from previous days
+
         const newMission = { missionName, date: nowFormat };
         user.missions.push(newMission);
         await user.save();
 
         const matchingMission = rewardData.find(mission => mission.missionName === missionName);
-        console.log(`Matching mission: ${JSON.stringify(matchingMission)}`);
-        console.log(`Matching mission: ${JSON.stringify(matchingMission.condition)}`);
-
         if (!matchingMission) {
             return res.status(400).json({ error: 'Mission not found' });
         }
 
         let conditionMet = false;
-
         if (matchingMission.condition) {
             if (matchingMission.condition.type === "games") {
                 const gamesToday = user.gamesPerDay.find(day => day.date === nowFormat);
                 const gamesCount = gamesToday ? gamesToday.count : 0;
-                console.log(`Games today: ${gamesCount}, Required: ${matchingMission.condition.count}`);
-                console.log(`Games today: ${gamesToday}, Required: ${matchingMission.condition.count}`);
-
                 conditionMet = gamesCount >= matchingMission.condition.count;
             } else if (matchingMission.condition.type === "wins") {
                 const winsToday = user.winsPerDay.find(day => day.date === nowFormat);
                 const winsCount = winsToday ? winsToday.count : 0;
-                console.log(`Wins today: ${winsCount}, Required: ${matchingMission.condition.count}`);
                 conditionMet = winsCount >= matchingMission.condition.count;
             }
         } else {
             conditionMet = true;
         }
 
-        console.log("Condition Met:", conditionMet);
-
         if (conditionMet) {
             const updatedUser = await User.findByIdAndUpdate(id, { $inc: { point: matchingMission.reward } }, { new: true }).exec();
             return res.json({ user: updatedUser });
         }
 
-        // If conditions are not met, return the user without changes
         res.json({ user });
-
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-// get all user for chart with point
+
 
 
 

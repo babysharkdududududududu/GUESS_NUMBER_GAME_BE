@@ -8,12 +8,25 @@ userRouter.post('/create', async (req, res) => {
         const { username, password } = req.body;
         let user = await User.findOne({ username }).exec();
         if (!user) {
-            user = new User({ username, password });
-            await user.save();
+            const avatarImages = [
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060522/NAMMTYoTqq_xl2k9j.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060522/kFxcbwtAKx_okm1nz.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060522/BzOYticHhQ_j7wsb7.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060520/TsOMqzCcDU_bqtc4k.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060516/fBHPIHSCct_ofwban.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060516/YyvjQdTcAf_wp2kyw.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060516/xYGoiwkbWz_txmpeh.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060515/RvOjyHoMok_hz4mts.png",
+                "https://res.cloudinary.com/dtpmltwhp/image/upload/v1720060514/jqwTAsYWUN_lmbqar.png"
+            ];
+            const randomIndex = Math.floor(Math.random() * avatarImages.length);
+            const newUser = new User({ username, password, avatar: avatarImages[randomIndex] });
+            user = await newUser.save();
+            res.json({ user: newUser });
+        }
+        else if (user.password === password) {
             res.json({ user });
         }
-        else if (user.password === password) res.json({ user }
-        );
         else {
             res.status(400).json({ error: 'User already exists' });
         }
@@ -21,6 +34,7 @@ userRouter.post('/create', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+
 
 //get detail user
 userRouter.get('/:id', async (req, res) => {
@@ -205,6 +219,22 @@ userRouter.put('/missions/:id', async (req, res) => {
 });
 
 
+
+
+// search user
+userRouter.get('/search/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+        const user = await User.findOne({ username: { $regex: username, $options: 'i' } }).exec();
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 
 

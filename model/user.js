@@ -34,6 +34,10 @@ const userSchema = new Schema({
     numberOfGame: { type: Number, default: 0 },
     gamesPerDay: { type: [gamePerDaySchema], default: [] },
     winsPerDay: { type: [winPerDaySchema], default: [] },
+    avatar: { type: String},
+    friends: { type: Array, default: [] },
+    coin: { type: Number, default: 0 },
+    level : { type: Number, default: 1 },
     missions: { type: [missionSchema], default: [] }
 }, {
     timestamps: true

@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const userRouter = require('./router/userRouter');
 const roomRouter = require('./router/roomRouter');
+const friendRouter = require('./router/friendRouter');
+const gameRouter = require('./router/GameAdsRouter');
+const notificationRouter = require('./router/notificationRouter');
 const missionRouter = require('./router/missonRouter');
 const socket = require('socket.io');
 const cors = require('cors');
@@ -15,6 +18,9 @@ app.use(express.json());
 // Routers
 app.use('/user', userRouter);
 app.use('/room', roomRouter);
+app.use('/friend', friendRouter);
+app.use('/ads', gameRouter);
+app.use('/notification', notificationRouter);
 app.use('/mission', missionRouter);
 
 
@@ -27,7 +33,7 @@ app.use((req, res, next) => {
     res.status(404).send("Sorry can't find that!");
 });
 
-const hostName = "192.168.1.8";
+const hostName = "0.0.0.0";
 const port = process.env.PORT || 8000;
 
 const server = app.listen(port, hostName, () => {
@@ -37,7 +43,7 @@ const server = app.listen(port, hostName, () => {
 // Socket.IO configuration
 const io = socket(server, {
     cors: {
-        origin: ['http://localhost:3000', 'http://192.168.1.8:8000'],
+        origin: ['http://localhost:3000', 'http://192.168.114.154:8000'],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     }
@@ -45,7 +51,11 @@ const io = socket(server, {
 
 io.on('connection', (socket) => {
     console.log('A user connected');
-
+    //test socket
+    socket.on("send-message", (data) => {
+        console.log("send-message", data);
+        io.emit("receive-message", data);
+    });
     socket.on('joinRoom', ({ roomNumber, secretNumber }, callback) => {
         // Replace with actual room validation logic
         const roomExists = true;
